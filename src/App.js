@@ -11,10 +11,16 @@ const donationAddress = "0x9cb8921aa376219950ba134c15d8f5ee2769c599";
 
 //const donationAddress_e = '0x8d12a197cb00d4747a1fe03395095ce2a5cc6819'; For Testnet
 const donationNetworkID = 1; // make sure donations only go through on this network.
-const etherscanApiLink =
-  "https://api.etherscan.io/api?module=account&action=txlist&address=" +
-  donationAddress +
-  "&startblock=0&endblock=99999999&sort=asc&apikey=6DIUB7X6S92YJR6KXKF8V8ZU55IXT5PN2S";
+const etherscanApiLinks = {
+  extTx:   "https://api.etherscan.io/api?module=account&action=txlistinternal&address=" +
+    donationAddress +
+    "&startblock=0&endblock=99999999&sort=asc&apikey=6DIUB7X6S92YJR6KXKF8V8ZU55IXT5PN2S",
+  intTx: "https://api.etherscan.io/api?module=account&action=txlist&address=" +
+    donationAddress +
+    "&startblock=0&endblock=99999999&sort=asc&apikey=6DIUB7X6S92YJR6KXKF8V8ZU55IXT5PN2S"
+}
+
+
 
 const isSearched = searchTerm => item =>
   item.from.toLowerCase().includes(searchTerm.toLowerCase());
@@ -104,10 +110,13 @@ class App extends Component {
   };
 
   getAccountData = () => {
-    return fetch(`${etherscanApiLink}`)
-      .then(originalResponse => originalResponse.json())
+    let fetchCalls = [fetch(`${etherscanApiLinks.extTx}`), fetch(`${etherscanApiLinks.intTx}`)];
+    return Promise.all(fetchCalls)
+      .then((res) => {
+        return Promise.all(res.map(apiCall => apiCall.json()))
+      })
       .then(responseJson => {
-        return responseJson.result;
+        return [].concat.apply(...responseJson.map(res => res.result));
       });
   };
 
@@ -234,6 +243,7 @@ class App extends Component {
     }
 
     this.getAccountData().then(res => {
+      console.log(res);
       this.setState(
         {
           transactionsArray: res
@@ -391,7 +401,7 @@ class App extends Component {
                     <td>{item.from} </td>
                     <td>{myweb3.utils.fromWei(item.value)} ETH</td>
                     <td>
-                      <Emojify>{myweb3.utils.hexToAscii(item.input)}</Emojify>
+                      <Emojify>{item.input.length && myweb3.utils.hexToAscii(item.input)}</Emojify>
                     </td>
                     <td>
                       {item.hash.map((txHash, index) => (

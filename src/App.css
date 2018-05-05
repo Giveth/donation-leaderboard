@@ -53,17 +53,26 @@ p {
   padding-bottom: 0.5rem;
 }
 
+ol {
+  padding-top: 0.5rem;
+  padding-left: 4rem;
+  padding-right: 4rem;
+  padding-bottom: 0.5rem;
+  line-height: 1.5rem;
+}
 
 thead {
     background-color: rgba(79, 147, 226, 0.7);
 }
 
 .App {
+  /**
   background-image: url('./scaleth.svg');
   background-repeat: no-repeat;
   background-size: contain;
   background-position: bottom;
   position: sticky;
+  **/
   max-width: 100vw;
   min-height: 100vh;
   padding: 0px;
@@ -105,6 +114,7 @@ thead {
 
 .typelogo {
   padding: 2rem 2rem 2rem 2rem;
+  max-height: 33vh;
 }
 
 .amount {
@@ -121,10 +131,14 @@ thead {
   color: white;
   justify-content: center;
   text-align: center;
-  padding-top: 2rem;
+  margin-top: 2rem;
   padding-left: 1rem;
   padding-right: 1rem;
   padding-bottom: 0.5rem;
+}
+
+.introContainer {
+  padding-bottom: 5rem;
 }
 
 .leaderboard {
