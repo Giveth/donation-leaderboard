@@ -7,16 +7,20 @@ import Web3 from "web3";
 
 import Emojify from "react-emojione";
 
+const donationAddress = "0x9cb8921aa376219950ba134c15d8f5ee2769c599";
+
+//const donationAddress_e = '0x8d12a197cb00d4747a1fe03395095ce2a5cc6819'; For Testnet
 const donationNetworkID = 1; // make sure donations only go through on this network.
+const etherscanApiLinks = {
+  extTx:   "https://api.etherscan.io/api?module=account&action=txlistinternal&address=" +
+    donationAddress +
+    "&startblock=0&endblock=99999999&sort=asc&apikey=6DIUB7X6S92YJR6KXKF8V8ZU55IXT5PN2S",
+  intTx: "https://api.etherscan.io/api?module=account&action=txlist&address=" +
+    donationAddress +
+    "&startblock=0&endblock=99999999&sort=asc&apikey=6DIUB7X6S92YJR6KXKF8V8ZU55IXT5PN2S"
+}
 
-const donationAddress = "0x5ADF43DD006c6C36506e2b2DFA352E60002d22Dc"; //replace with the address to watch
-const apiKey = "6DIUB7X6S92YJR6KXKF8V8ZU55IXT5PN2S"; //replace with your own key
 
-const etherscanApiLink =
-  "https://api.etherscan.io/api?module=account&action=txlist&address=" +
-  donationAddress +
-  "&startblock=0&endblock=99999999&sort=asc&apikey=" +
-  apiKey;
 
 const isSearched = searchTerm => item =>
   item.from.toLowerCase().includes(searchTerm.toLowerCase());
@@ -106,10 +110,13 @@ class App extends Component {
   };
 
   getAccountData = () => {
-    return fetch(`${etherscanApiLink}`)
-      .then(originalResponse => originalResponse.json())
+    let fetchCalls = [fetch(`${etherscanApiLinks.extTx}`), fetch(`${etherscanApiLinks.intTx}`)];
+    return Promise.all(fetchCalls)
+      .then((res) => {
+        return Promise.all(res.map(apiCall => apiCall.json()))
+      })
       .then(responseJson => {
-        return responseJson.result;
+        return [].concat.apply(...responseJson.map(res => res.result));
       });
   };
 
@@ -119,8 +126,8 @@ class App extends Component {
     let donateWei = new myweb3.utils.BN(
       myweb3.utils.toWei(form.elements["amount"].value, "ether")
     );
-    let message = myweb3.utils.toHex(form.elements["message"].value);
-    let extraGas = form.elements["message"].value.length * 68;
+    let remarks = myweb3.utils.toHex(form.elements["remarks"].value);
+    let extraGas = form.elements["remarks"].value.length * 68;
 
     myweb3.eth.net.getId().then(netId => {
       switch (netId) {
@@ -149,8 +156,8 @@ class App extends Component {
               from: accounts[0],
               to: donationAddress,
               value: donateWei,
-              gas: 150000 + extraGas,
-              data: message
+              gas: 100000 + extraGas,
+              data: remarks
             })
             .catch(e => {
               console.log(e);
@@ -236,6 +243,7 @@ class App extends Component {
     }
 
     this.getAccountData().then(res => {
+      console.log(res);
       this.setState(
         {
           transactionsArray: res
@@ -271,47 +279,61 @@ class App extends Component {
         >
           <div className="flex-column introColumn">
             <img
-              src="/img/placeholder-banner.svg"
+              src="/img/scalingnow.png"
               className="typelogo img-fluid"
-              alt="Banner Placeholder"
+              alt="scaling now logo"
             />
-            <div className="introContainer">
-              <h1>Donation Leaderboard</h1>
-              <p>To deploy your own leaderboard:</p>
-              <ol>
-                <li>
-                  1 - Star and fork the
-                  <a href="https://github.com/giveth/donation-leaderboard">
-                    {" "}
-                    Donation Leaderboard on GitHub/Giveth
-                  </a>
-                  on your own repository
-                </li>
-                <li>
-                  2 - Get your own API key from{" "}
-                  <a href="https://etherscan.io">etherscan.io</a>
-                </li>
-                <li>
-                  3 - Change the <strong>donationAddress</strong> and{" "}
-                  <strong>apiKey</strong> variables in your /src/App.js file
-                </li>
-                <li>
-                  4 - Replace placeholder images for <strong>banner</strong> and{" "}
-                  <strong>QR code</strong> in public/img and also in your
-                  /src/App.js file
-                </li>
-              </ol>
-              <h4>
-                {`Made with <3 by the Unicorns at `}
-                <a href="https://giveth.io">Giveth</a>
-              </h4>
-              <p>
-                This page uses the Giveth Donation address. By donating you
-                support open source projects like this one.{" "}
-                <a href="https://giveth.io/donate/">More Info</a>
-              </p>
-            </div>
-
+            <p>
+              <a href="https://web3.foundation/">Web3 Foundation</a> and{" "}
+              <a href="https://giveth.io">Giveth</a> hosted an in-person
+              gathering exploring Ethereum Scaling Solutions on{" "}
+              <strong>March 5th & 6th 2018 in Barcelona</strong>. This DApp
+              acted (and still acts!) as a donation gateway for attendees and
+              supporters of this cause.
+            </p>
+            <p>
+              <strong>March 5th</strong> was an invite-only event for select
+              devs working on immediate scaling solutions where they shared
+              their insights amongst one another.
+            </p>
+            <p>
+              <strong>March 6th</strong> was the moment scaling solutions and
+              dapp devs mingled to scale the future. You can find an overview of
+              all presentations and interviews{" "}
+              <a href="https://www.youtube.com/watch?v=-VW8gXUXo7Y&index=7&list=PL4Artm1rmCWGksgoRe6HF5d9eklC01IcC">
+                right <strong>here</strong>
+              </a>. Giveth created{" "}
+              <a href="https://medium.com/giveth/tagged/scalingnow">
+                transcripts of the discussions
+              </a>{" "}
+              and Web3 Foundation bundled{" "}
+              <a href="https://medium.com/@web3/scalingnow-scaling-solution-summit-summary-be30047047bf">
+                the highlights <strong>here</strong>
+              </a>.
+            </p>
+            <p>
+              If you attended the event or if you find this content interesting
+              we encourage you to open your wallets and let the donations flow
+              through.
+            </p>
+            <p>
+              <strong>Please be generous</strong>, your donation covers the
+              costs of expenses and will enable us to support similar events in
+              the future such as{" "}
+              <a href="https://www.youtube.com/watch?v=aWvzQMorof0&list=PL4Artm1rmCWGksgoRe6HF5d9eklC01IcC">
+                Giveth's ScalingNOW! interview series
+              </a>.
+            </p>
+            <p>
+              The ETH raised is transparently tracked using the{" "}
+              <a href="https://alpha.giveth.io/campaigns/ap6KXg8iJwwUAxBY">
+                Giveth Platform
+              </a>{" "}
+              If any donations are received beyond the costs detailed in the
+              ScalingNow! Giveth Campaign, they will be split equally between
+              Giveth and the Web3 Foundation to help make more magic like this
+              happen again.
+            </p>
             <div {...responsiveness} className="flex-row d-flex amount">
               <div className="flex-column margin">
                 <strong>Amount donated </strong>
@@ -328,14 +350,13 @@ class App extends Component {
               </div>
             </div>
           </div>
-
           <div className="flex-column donationColumn">
             <img src="/img/ways-to-donate.svg" className="typelogo img-fluid" />
             {candonate ? (
               <div>
                 <h4 {...hiddenOnMobile}>
                   Publicly: Send a transaction via Metamask with your Team Name
-                  as a message{" "}
+                  as a remark{" "}
                 </h4>
 
                 <form {...hiddenOnMobile} onSubmit={this.handleDonate}>
@@ -344,7 +365,7 @@ class App extends Component {
                     placeholder="ETH to donate"
                     name="amount"
                   />
-                  <input type="text" placeholder="message" name="message" />
+                  <input type="text" placeholder="remarks" name="remarks" />
                   <button className="btn btn-primary">Send</button>
                 </form>
               </div>
@@ -353,7 +374,7 @@ class App extends Component {
             )}
             <hr />
             <h4>Privately: Send directly to the donation address</h4>
-            <img src="/img/placeholder-qr.svg" className="qr-code" />
+            <img src="/img/scalingnow-qr.svg" className="qr-code" />
             <div className="word-wrap">
               <strong>{donationAddress}</strong>
             </div>
@@ -367,7 +388,7 @@ class App extends Component {
                 <th>Rank</th>
                 <th>Address</th>
                 <th>Value</th>
-                <th>message</th>
+                <th>Remarks</th>
                 <th>Tx Link</th>
               </tr>
             </thead>
@@ -380,7 +401,7 @@ class App extends Component {
                     <td>{item.from} </td>
                     <td>{myweb3.utils.fromWei(item.value)} ETH</td>
                     <td>
-                      <Emojify>{myweb3.utils.hexToAscii(item.input)}</Emojify>
+                      <Emojify>{item.input.length && myweb3.utils.hexToAscii(item.input)}</Emojify>
                     </td>
                     <td>
                       {item.hash.map((txHash, index) => (
